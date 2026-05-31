@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolo Progetti Universale</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+        h2 { margin-top: 0; color: #333; font-size: 22px; margin-bottom: 15px;}
+        
+        /* Area Input Soldi */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input[type="number"] {
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            outline: none;
+        }
+        input:focus { border-color: #007bff; }
+        
+        #inputNumero { flex: 1; } /* L'importo prende tutto lo spazio */
+
+        /* Tasto + */
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            font-size: 24px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-add:active { transform: scale(0.95); }
+
+        /* Area Percentuale */
+        .perc-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .perc-label { font-size: 14px; color: #555; }
+        #inputPerc { width: 60px; padding: 8px; font-weight: bold; color: #e65100; }
+
+        /* Lista Voci */
+        .lista-container {
+            background-color: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .voce-lista {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            color: #555;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .voce-lista:last-child { border-bottom: none; }
+        .voce-vuota { color: #aaa; font-style: italic; text-align: center; display: block;}
+
+        /* Totale Provvisorio */
+        .totale-box {
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .totale-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .totale-valore { font-size: 24px; color: #333; font-weight: bold; }
+
+        /* Tasti Azione */
+        button.btn-calc {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        button.btn-reset {
+            background-color: #dc3545;
+            margin-top: 10px;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        /* Risultati Finali */
+        .results-container {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .result-box-consulente {
+            padding: 10px;
+            background-color: #fff3e0;
+            border: 1px solid #ffe0b2;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .label-cons { font-size: 11px; color: #e65100; text-transform: uppercase; letter-spacing: 1px; }
+        .value-cons { font-size: 24px; font-weight: bold; color: #e65100; margin: 5px 0 0 0; }
+
+        .result-box-mio {
+            padding: 15px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+        }
+        .label-mio { font-size: 12px; color: #155724; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .value-mio { font-size: 32px; font-weight: bold; color: #155724; margin: 5px 0 0 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Calcolo Progetti</h2>
+    
+    <div class="input-group">
+        <input type="number" id="inputNumero" placeholder="Importo €" step="0.01">
+        <button class="btn-add" onclick="aggiungi()">+</button>
+    </div>
+
+    <div class="perc-group">
+        <span class="perc-label">Quota Consulente:</span>
+        <input type="number" id="inputPerc" value="20" min="0" max="100">
+        <span style="font-weight: bold; color: #555;">%</span>
+    </div>
+
+    <div class="lista-container" id="listaVoci">
+        <span class="voce-vuota">Nessuna voce inserita</span>
+    </div>
+
+    <div class="totale-box">
+        <div class="totale-label">Totale Progetto</div>
+        <div class="totale-valore" id="displayTotale">€ 0,00</div>
+    </div>
+
+    <button class="btn-calc" onclick="calcolaFinale()">Calcola Ripartizione</button>
+    
+    <div id="areaRisultati" class="results-container">
+        
+        <div class="result-box-consulente">
+            <div class="label-cons">Quota Consulente (<span id="txtPercCons">20%</span>)</div>
+            <div class="value-cons" id="valoreConsulente">€ 0,00</div>
+        </div>
+
+        <div class="result-box-mio">
+            <div class="label-mio">💰 Quota MIA (<span id="txtPercMio">80%</span>)</div>
+            <div class="value-mio" id="valoreMio">€ 0,00</div>
+        </div>
+
+    </div>
+
+    <button class="btn-calc btn-reset" onclick="resettaTutto()">Nuovo Calcolo</button>
+</div>
+
+<script>
+    let totaleAccumulato = 0.0;
+    let primaVoce = true;
+
+    const formattaValuta = (numero) => {
+        return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(numero);
+    };
+
+    function aggiungi() {
+        let input = document.getElementById('inputNumero');
+        let valoreRaw = input.value.replace(',', '.');
+        let valore = parseFloat(valoreRaw);
+
+        if (isNaN(valore)) {
+            alert("Inserisci un numero valido");
+            return;
+        }
+
+        let lista = document.getElementById('listaVoci');
+        if (primaVoce) {
+            lista.innerHTML = ''; 
+            primaVoce = false;
+        }
+
+        totaleAccumulato += valore;
+
+        let nuovaRiga = document.createElement('div');
+        nuovaRiga.className = 'voce-lista';
+        nuovaRiga.innerHTML = `<span>Voce</span> <span>${formattaValuta(valore)}</span>`;
+        lista.appendChild(nuovaRiga);
+        lista.scrollTop = lista.scrollHeight;
+
+        document.getElementById('displayTotale').textContent = formattaValuta(totaleAccumulato);
+
+        input.value = "";
+        input.focus();
+    }
+
+    function calcolaFinale() {
+        if (totaleAccumulato === 0) {
+            alert("Aggiungi prima degli importi!");
+            return;
+        }
+
+        // Legge la percentuale inserita dall'utente
+        let percConsulente = parseFloat(document.getElementById('inputPerc').value);
+        if (isNaN(percConsulente) || percConsulente < 0 || percConsulente > 100) {
+            alert("Percentuale non valida (usa 0-100)");
+            return;
+        }
+        
+        // Calcola la percentuale residua per te
+        let percMio = 100 - percConsulente;
+
+        // Calcoli matematici
+        let guadagnoConsulente = totaleAccumulato * (percConsulente / 100);
+        let guadagnoMio = totaleAccumulato * (percMio / 100);
+        
+        // Aggiorna le etichette con le percentuali reali
+        document.getElementById('txtPercCons').textContent = percConsulente + "%";
+        document.getElementById('txtPercMio').textContent = percMio + "%";
+
+        // Stampa i soldi
+        document.getElementById('valoreConsulente').textContent = formattaValuta(guadagnoConsulente);
+        document.getElementById('valoreMio').textContent = formattaValuta(guadagnoMio);
+        
+        // Mostra i box
+        document.getElementById('areaRisultati').style.display = 'block';
+    }
+
+    function resettaTutto() {
+        totaleAccumulato = 0.0;
+        primaVoce = true;
+        
+        document.getElementById('displayTotale').textContent = "€ 0,00";
+        document.getElementById('areaRisultati').style.display = 'none';
+        document.getElementById('inputNumero').value = "";
+        document.getElementById('listaVoci').innerHTML = '<span class="voce-vuota">Nessuna voce inserita</span>';
+    }
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('ServiceWorker registrato'))
+                .catch(err => console.log('Errore ServiceWorker: ', err));
+        });
+    }
+</script>
+</body>
+</html>
